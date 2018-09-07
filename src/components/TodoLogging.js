@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStore } from 'redux';
+import { createStore, combineReducers } from 'redux';
 
 const todo = (state, action) => {
   switch (action.type) {
@@ -53,12 +53,16 @@ const visibilityFilter = (state = 'SHOW_ALL', action) => {
   }
 };
 
-const todoApp = (state = {}, action) => {
-  return {
-    todos: todos(state.todos, action),
-    filter: visibilityFilter(state.visibilityFilter, action)
-  };
-};
+const todoApp = combineReducers({
+  todos, visibilityFilter
+});
+
+// const todoApp = (state = {}, action) => {
+//   return {
+//     todos: todos(state.todos, action),
+//     filter: visibilityFilter(state.visibilityFilter, action)
+//   };
+// };
 
 const store = createStore(todoApp);
 const logState = () => console.log(store.getState());
