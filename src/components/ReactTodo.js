@@ -70,6 +70,7 @@ export default class ReactTodo extends PureComponent {
 	constructor(props) {
 		super(props);
 		this.addNewTodo = this.addNewTodo.bind(this);
+		this.toggleTodo = this.toggleTodo.bind(this);
 	}
 
 	addNewTodo() {
@@ -81,6 +82,13 @@ export default class ReactTodo extends PureComponent {
 		this.input.value = '';
 	};
 
+	toggleTodo(id) {
+		store.dispatch({
+			type: 'TOGGLE_TODO',
+			id
+		});
+	}
+
   render() {
 		const { todos = [] } = this.props;
 		
@@ -91,9 +99,18 @@ export default class ReactTodo extends PureComponent {
 					Add Todo
 				</button>
 				<ul>
-					{todos.map(todo => 
-						<li key={todo.id}>{todo.text}</li>
-					)}
+					{todos.map(todo => { 
+						const lineThrough = {textDecoration: todo.completed ? 'line-through' : 'none'};
+						return (
+							<li
+								style={lineThrough} 
+								key={todo.id}
+								onClick={() => this.toggleTodo(todo.id)}
+							>
+								{todo.text}
+							</li>
+						)
+					})}
 				</ul>
       </div>
     );
