@@ -1,6 +1,7 @@
 import React, { PureComponent, Component, Fragment} from "react";
 import PropTypes  from 'prop-types';
 import { createStore, combineReducers } from "redux";
+import { Provider } from 'react-redux'
 
 const todo = (state, action) => {
   switch (action.type) {
@@ -208,21 +209,6 @@ class TodoApp extends PureComponent {
     );
   }
 }
-
-class Provider extends Component {
-	getChildContext() {
-		return {
-			store: this.props.store
-		};
-	}
-
-	render() {
-		return this.props.children;
-	}
-}
-Provider.childContextTypes = {
-	store: PropTypes.object
-};
 
 const ReactTodo = () => (
 	<Provider store={createStore(todoApp)}>
