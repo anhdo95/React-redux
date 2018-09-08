@@ -12,18 +12,10 @@ const todo = (state, action) => {
       };
     case "TOGGLE_TODO":
       if (state.id !== action.id) return state;
-
       return {
         ...state,
         completed: !state.completed
       };
-    case "SET_VISIBILITY_FILTER":
-      switch (action.filter) {
-        case "SHOW_COMPLETED":
-          return state.completed;
-        default:
-          return state;
-      }
   }
 };
 
@@ -33,13 +25,6 @@ const todos = (state = [], action) => {
       return [...state, todo(undefined, action)];
     case "TOGGLE_TODO":
       return state.map(t => todo(t, action));
-    case "SET_VISIBILITY_FILTER":
-      switch (action.filter) {
-        case "SHOW_COMPLETED":
-          return state.filter(t => todo(t, action));
-        default:
-          return state;
-      }
     default:
       return state;
   }
@@ -61,57 +46,104 @@ const todoApp = combineReducers({
 
 const store = createStore(todoApp);
 const render = () => {
-  ReactDOM.render(<ReactTodo todos={store.getState().todos} />, document.getElementById("root"));
+  ReactDOM.render(
+    <ReactTodo {...store.getState()} />,
+    document.getElementById("root")
+  );
 };
 store.subscribe(render);
-let nextTodoId = 0;
+
+const FilterLink = ({ filter, currentFilter, children }) => {
+  const setVisibilityFilter = e => {
+    e.preventDefault();
+    store.dispatch({
+      type: "SET_VISIBILITY_FILTER",
+      filter
+    });
+  };
+
+  if (filter === currentFilter) return <small>{children}</small>;
+
+  return (
+    <a href="#" onClick={setVisibilityFilter}>
+      <small>{children}</small>
+    </a>
+  );
+};
 
 export default class ReactTodo extends PureComponent {
-	constructor(props) {
-		super(props);
-		this.addNewTodo = this.addNewTodo.bind(this);
-		this.toggleTodo = this.toggleTodo.bind(this);
-	}
+  _nextTodoId = 0;
+  constructor(props) {
+    super(props);
+    this.addNewTodo = this.addNewTodo.bind(this);
+    this.toggleTodo = this.toggleTodo.bind(this);
+  }
 
-	addNewTodo() {
-		store.dispatch({
-			type: 'ADD_TODO',
-			text: this.input.value,
-			id: nextTodoId++
-		});
-		this.input.value = '';
-	};
+  getVisibleTodos(todos, visibilityFilter) {
+    switch (visibilityFilter) {
+      case "SHOW_ACTIVE":
+        return todos.filter(t => !t.completed);
+      case "SHOW_COMPLETED":
+        return todos.filter(t => t.completed);
+      case "SHOW_ALL":
+      default:
+        return todos;
+    }
+  }
 
-	toggleTodo(id) {
-		store.dispatch({
-			type: 'TOGGLE_TODO',
-			id
-		});
-	}
+  addNewTodo() {
+    store.dispatch({
+      type: "ADD_TODO",
+      text: this.input.value,
+      id: this._nextTodoId++
+    });
+    this.input.value = "";
+  }
+
+  toggleTodo(id) {
+    store.dispatch({
+      type: "TOGGLE_TODO",
+      id
+    });
+  }
 
   render() {
-		const { todos = [] } = this.props;
-		
+    const { todos = [], visibilityFilter } = this.props;
+    const visibleTodos = this.getVisibleTodos(todos, visibilityFilter);
     return (
       <div>
-				<input ref={node => this.input = node}  />
-        <button onClick={this.addNewTodo}>
-					Add Todo
-				</button>
-				<ul>
-					{todos.map(todo => { 
-						const lineThrough = {textDecoration: todo.completed ? 'line-through' : 'none'};
-						return (
-							<li
-								style={lineThrough} 
-								key={todo.id}
-								onClick={() => this.toggleTodo(todo.id)}
-							>
-								{todo.text}
-							</li>
-						)
-					})}
-				</ul>
+        <input ref={node => (this.input = node)} />
+        <button onClick={this.addNewTodo}>Add Todo</button>
+        <ul>
+          {visibleTodos.map(todo => {
+            const lineThrough = {
+              textDecoration: todo.completed ? "line-through" : "none"
+            };
+            return (
+              <li
+                style={lineThrough}
+                key={todo.id}
+                onClick={() => this.toggleTodo(todo.id)}
+              >
+                {todo.text}
+              </li>
+            );
+          })}
+        </ul>
+        <p>
+          Show:&nbsp;
+          <FilterLink filter="SHOW_ALL" currentFilter={visibilityFilter}>
+            All
+          </FilterLink>
+          ,&nbsp;
+          <FilterLink filter="SHOW_ACTIVE" currentFilter={visibilityFilter}>
+            Active
+          </FilterLink>
+          ,&nbsp;
+          <FilterLink filter="SHOW_COMPLETED" currentFilter={visibilityFilter}>
+            Completed
+          </FilterLink>
+        </p>
       </div>
     );
   }
