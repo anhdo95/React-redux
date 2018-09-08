@@ -1,7 +1,7 @@
 import React, { PureComponent, Component, Fragment} from "react";
 import PropTypes  from 'prop-types';
 import { createStore, combineReducers } from "redux";
-import { Provider } from 'react-redux'
+import { Provider, connect } from 'react-redux'
 
 const todo = (state, action) => {
   switch (action.type) {
@@ -39,6 +39,18 @@ const visibilityFilter = (state = "SHOW_ALL", action) => {
       return state;
   }
 };
+
+const getVisibleTodos = (todos, visibilityFilter) => {
+	switch (visibilityFilter) {
+		case "SHOW_ACTIVE":
+			return todos.filter(t => !t.completed);
+		case "SHOW_COMPLETED":
+			return todos.filter(t => t.completed);
+		case "SHOW_ALL":
+		default:
+			return todos;
+	}
+}
 
 const todoApp = combineReducers({
   todos,
@@ -155,48 +167,30 @@ const Footer = () => {
   );
 };
 
-class VisibleTodoList extends Component {
-	componentDidMount() {
-		const { store } = this.context;
-    this.unsubscribe = store.subscribe(() => {
-      this.forceUpdate();
-    });
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe();
-  }
-
-  getVisibleTodos(todos, visibilityFilter) {
-    switch (visibilityFilter) {
-      case "SHOW_ACTIVE":
-        return todos.filter(t => !t.completed);
-      case "SHOW_COMPLETED":
-        return todos.filter(t => t.completed);
-      case "SHOW_ALL":
-      default:
-        return todos;
-    }
-  }
-
-  render() {
-		const { store } = this.context;
-    const state = store.getState();
-
-    return (
-      <TodoList
-				todos={this.getVisibleTodos(state.todos, state.visibilityFilter)}
-				onTodoClick={(id) => store.dispatch({
-					type: 'TOGGLE_TODO', 
-					id
-				})}
-      />
-    );
-  }
-}
-VisibleTodoList.contextTypes = {
-	store: PropTypes.object
+const mapStateToTodoListProps = (state) => {
+	return {
+		todos: getVisibleTodos(
+			state.todos,
+			state.visibilityFilter
+		)
+	};
 };
+
+const mapStateToTodoListProps = (dispatch) => {
+	return {
+		onTodoClick: (id) => {
+			dispatch({
+				type: 'TOGGLE_TODO', 
+				id
+			})
+		}
+	};
+};
+
+const VisibleTodoList = connect(
+	mapStateToTodoListProps,
+	mapStateToTodoListProps
+)(TodoList);
 
 class TodoApp extends PureComponent {
   render() {
