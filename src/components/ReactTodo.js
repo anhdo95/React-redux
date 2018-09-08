@@ -1,17 +1,17 @@
-import React, { PureComponent, Component, Fragment} from "react";
+import React, { PureComponent, Component, Fragment} from 'react';
 import PropTypes  from 'prop-types';
-import { createStore, combineReducers } from "redux";
+import { createStore, combineReducers } from 'redux';
 import { Provider, connect } from 'react-redux'
 
 const todo = (state, action) => {
   switch (action.type) {
-    case "ADD_TODO":
+    case 'ADD_TODO':
       return {
         id: action.id,
         text: action.text,
         completed: false
       };
-    case "TOGGLE_TODO":
+    case 'TOGGLE_TODO':
       if (state.id !== action.id) return state;
       return {
         ...state,
@@ -22,18 +22,18 @@ const todo = (state, action) => {
 
 const todos = (state = [], action) => {
   switch (action.type) {
-    case "ADD_TODO":
+    case 'ADD_TODO':
       return [...state, todo(undefined, action)];
-    case "TOGGLE_TODO":
+    case 'TOGGLE_TODO':
       return state.map(t => todo(t, action));
     default:
       return state;
   }
 };
 
-const visibilityFilter = (state = "SHOW_ALL", action) => {
+const visibilityFilter = (state = 'SHOW_ALL', action) => {
   switch (action.type) {
-    case "SET_VISIBILITY_FILTER":
+    case 'SET_VISIBILITY_FILTER':
       return action.filter;
     default:
       return state;
@@ -42,11 +42,11 @@ const visibilityFilter = (state = "SHOW_ALL", action) => {
 
 const getVisibleTodos = (todos, visibilityFilter) => {
 	switch (visibilityFilter) {
-		case "SHOW_ACTIVE":
+		case 'SHOW_ACTIVE':
 			return todos.filter(t => !t.completed);
-		case "SHOW_COMPLETED":
+		case 'SHOW_COMPLETED':
 			return todos.filter(t => t.completed);
-		case "SHOW_ALL":
+		case 'SHOW_ALL':
 		default:
 			return todos;
 	}
@@ -62,7 +62,7 @@ const Link = ({ active, children, onClick }) => {
 
   return (
     <a
-      href="#"
+      href='#'
       onClick={e => {
         e.preventDefault();
         onClick();
@@ -94,7 +94,7 @@ class FilterLink extends Component {
         active={filter === state.visibilityFilter}
         onClick={() =>
           store.dispatch({
-            type: "SET_VISIBILITY_FILTER",
+            type: 'SET_VISIBILITY_FILTER',
             filter
           })
         }
@@ -110,7 +110,7 @@ FilterLink.contextTypes = {
 
 const Todo = ({ text, completed, onClick }) => {
   const lineThrough = {
-    textDecoration: completed ? "line-through" : "none"
+    textDecoration: completed ? 'line-through' : 'none'
   };
   return (
     <li style={lineThrough} onClick={onClick}>
@@ -130,39 +130,37 @@ const TodoList = ({ todos, onTodoClick }) => {
 };
 
 let _nextTodoId = 0;
-const AddTodo = (props, { store }) => {
+let AddTodo = ({ dispatch }) => {
   let input;
   return (
     <Fragment>
       <input ref={node => (input = node)} />
       <button
         onClick={() => {
-          store.dispatch({
-						type: "ADD_TODO",
+					dispatch({
+						type: 'ADD_TODO',
 						id: _nextTodoId++,
 						text: input.value
 					});
-          input.value = "";
-        }}
+					input.value = '';
+				}}
       >
         Add Todo
       </button>
     </Fragment>
   );
 };
-AddTodo.contextTypes = {
-	store: PropTypes.object
-};
+AddTodo = connect()(AddTodo);
 
 const Footer = () => {
   return (
     <p>
       Show:&nbsp;
-      <FilterLink filter="SHOW_ALL">All</FilterLink>
+      <FilterLink filter='SHOW_ALL'>All</FilterLink>
       ,&nbsp;
-      <FilterLink filter="SHOW_ACTIVE">Active</FilterLink>
+      <FilterLink filter='SHOW_ACTIVE'>Active</FilterLink>
       ,&nbsp;
-      <FilterLink filter="SHOW_COMPLETED">Completed</FilterLink>
+      <FilterLink filter='SHOW_COMPLETED'>Completed</FilterLink>
     </p>
   );
 };
@@ -176,7 +174,7 @@ const mapStateToTodoListProps = (state) => {
 	};
 };
 
-const mapStateToTodoListProps = (dispatch) => {
+const mapDispatchToTodoListProps = (dispatch) => {
 	return {
 		onTodoClick: (id) => {
 			dispatch({
@@ -189,7 +187,7 @@ const mapStateToTodoListProps = (dispatch) => {
 
 const VisibleTodoList = connect(
 	mapStateToTodoListProps,
-	mapStateToTodoListProps
+	mapDispatchToTodoListProps
 )(TodoList);
 
 class TodoApp extends PureComponent {
